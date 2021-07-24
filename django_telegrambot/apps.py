@@ -2,6 +2,7 @@
 # django_telegram_bot/apps.py
 import os.path
 import importlib
+import sys
 from collections import OrderedDict
 from typing import List
 
@@ -149,9 +150,18 @@ class DjangoTelegramBot(AppConfig):
         modes = ['WEBHOOK','POLLING']
         logger.info('Django Telegram Bot <{} mode>'.format(modes[self.mode]))
 
+        receive_updates = True
+        args = [arg.casefold() for arg in sys.argv]
+        is_manage_py = any(arg.endswith("manage.py") for arg in args)
+        if is_manage_py:
+            if self.mode == WEBHOOK_MODE:
+                receive_updates = "runserver" in args
+            else:
+                receive_updates = "botpolling" in args
+
         bots_list = settings.DJANGO_TELEGRAMBOT.get('BOTS', [])
 
-        if self.mode == WEBHOOK_MODE:
+        if self.mode == WEBHOOK_MODE and receive_updates:
             webhook_site = settings.DJANGO_TELEGRAMBOT.get('WEBHOOK_SITE', None)
             if not webhook_site:
                 logger.warn('Required TELEGRAM_WEBHOOK_SITE missing in settings')
@@ -279,6 +289,9 @@ class DjangoTelegramBot(AppConfig):
                     return False
 
             return True
+
+        if not receive_updates:
+            return
 
         # import telegram bot handlers for all INSTALLED_APPS
         for app_config in apps.get_app_configs():
