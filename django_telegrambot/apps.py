@@ -208,9 +208,8 @@ class DjangoTelegramBot(AppConfig):
                         if bot.proxy:
                             request = Request(proxy_url=bot.proxy['proxy_url'], urllib3_proxy_kwargs=bot.proxy['urllib3_proxy_kwargs'])
                         bot.instance = telegram.Bot(token=bot.token, request=request)
-
                     bot.dispatcher = Dispatcher(bot.instance, None, use_context=bot.use_context)
-                    if not settings.DJANGO_TELEGRAMBOT.get('DISABLE_SETUP', False):
+                    if not settings.DJANGO_TELEGRAMBOT.get('DISABLE_SETUP', False) and receive_updates:
                         hookurl = '{}/{}/{}/'.format(webhook_site, webhook_base, bot.token)
                         max_connections = b.get('WEBHOOK_MAX_CONNECTIONS', 40)
                         setted = bot.instance.setWebhook(hookurl, certificate=certificate, timeout=bot.timeout, max_connections=max_connections, allowed_updates=bot.allowed_updates)
@@ -237,7 +236,7 @@ class DjangoTelegramBot(AppConfig):
 
             else:
                 try:
-                    if not settings.DJANGO_TELEGRAMBOT.get('DISABLE_SETUP', False):
+                    if not settings.DJANGO_TELEGRAMBOT.get('DISABLE_SETUP', False) and receive_updates:
                         bot.updater = Updater(token=bot.token, request_kwargs=bot.proxy, use_context=bot.use_context)
                         bot.instance = bot.updater.bot
                         bot.instance.delete_webhook()
