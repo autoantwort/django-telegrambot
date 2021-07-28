@@ -21,6 +21,7 @@ from telegram.error import RetryAfter
 from telegram.error import TelegramError
 from telegram.utils.request import Request
 from telegram.ext import messagequeue as mq
+from telegram.ext import JobQueue
 
 from .bot import BotData
 from .mqbot import MQBot
@@ -253,6 +254,11 @@ class DjangoTelegramBot(AppConfig):
                 except TelegramError as er:
                     logger.error('Error: "{}"'.format(er.message))
                     return
+
+            if bot.dispatcher.job_queue is None:
+                bot.dispatcher.job_queue = JobQueue()
+                bot.dispatcher.job_queue.set_dispatcher(bot.dispatcher)
+                bot.dispatcher.job_queue.start()
 
             DjangoTelegramBot.bots_data.append(bot)
 
