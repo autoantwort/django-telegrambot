@@ -2,6 +2,7 @@ import logging
 
 from django.core.management.base import BaseCommand
 #from telegram.ext import Updater
+from django.utils import autoreload
 
 from django_telegrambot.apps import DjangoTelegramBot
 
@@ -27,13 +28,10 @@ class Command(BaseCommand):
                 self.stderr.write("Cannot find bot with token {}".format(token))
         return updater
 
-    def handle(self, *args, **options):
+    def run_bot(self, username, token):
         from django.conf import settings
-        if settings.DJANGO_TELEGRAMBOT.get('MODE', 'WEBHOOK') == 'WEBHOOK':
-            self.stderr.write("Webhook mode active in settings.py, change in POLLING if you want use polling update")
-            return
 
-        updater = self.get_updater(username=options.get('username'), token=options.get('token'))
+        updater = self.get_updater(username, token)
         if not updater:
             self.stderr.write("Bot not found")
             return
@@ -75,3 +73,10 @@ class Command(BaseCommand):
                       allowed_updates=allowed_updates)
         self.stdout.write("the bot is started and runs until we press Ctrl-C on the command line.")
         updater.idle()
+
+    def handle(self, *args, **options):
+        from django.conf import settings
+        if settings.DJANGO_TELEGRAMBOT.get('MODE', 'WEBHOOK') == 'WEBHOOK':
+            self.stderr.write("Webhook mode active in settings.py, change in POLLING if you want use polling update")
+            return
+        autoreload.run_with_reloader(self.run_bot, username=options.get('username'), token=options.get('token'))
