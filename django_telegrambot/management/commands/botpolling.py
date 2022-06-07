@@ -1,4 +1,5 @@
 import logging
+from time import sleep
 
 from django.core.management.base import BaseCommand
 #from telegram.ext import Updater
@@ -72,7 +73,7 @@ class Command(BaseCommand):
                       read_latency=read_latency,
                       allowed_updates=allowed_updates)
         self.stdout.write("the bot is started and runs until we press Ctrl-C on the command line.")
-        updater.idle()
+        sleep(60*60*24)  # sleep "forever". The thread is killed when reloading or exit is requested
 
     def handle(self, *args, **options):
         from django.conf import settings
